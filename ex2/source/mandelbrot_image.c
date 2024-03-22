@@ -6,6 +6,7 @@
 #include <time.h>
 #include <mpi.h>
 #include <string.h>
+#include "create_image.h"
 
 // ================================================================
 //  FUNCTIONS DEFINITION
