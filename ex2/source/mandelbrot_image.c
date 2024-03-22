@@ -9,7 +9,7 @@
 #include "create_image.h"
 
 // ================================================================
-//  FUNCTIONS DEFINITION
+//  FUNCTION DEFINITION
 // ================================================================
 
 // Function for creating the matrix using openMP threads.
