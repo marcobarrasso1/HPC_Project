@@ -14,8 +14,8 @@ module load openMPI/4.1.5/gnu/12.2.1
 CSV_FILE="bcast_core_thin_results.csv"
 OSU_BCAST_PATH="../osu-micro-benchmarks-7.3/c/mpi/collective/blocking/osu_bcast"
 MESSAGE_SIZE="1"
-WARMUP_ITER="2000"
-TOTAL_ITER="10000"
+WARMUP_ITER="5000"
+TOTAL_ITER="15000"
 ALGORITHMS=(1 2 5) # Array of algorithms to test
 
 # Header for CSV file
