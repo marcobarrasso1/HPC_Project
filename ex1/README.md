@@ -8,8 +8,11 @@ Text of the exercise [exercise1.md](exercise1.md)
 
 .
 ├── README.md
+
 ├── broadcast
+
 │   ├── broadcast_get_data
+
 │   │   ├── core_mapping.sh
 │   │   ├── node_mapping.sh
 │   │   └── socket_mapping.sh
