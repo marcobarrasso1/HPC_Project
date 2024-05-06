@@ -1,0 +1,216 @@
+---
+title: "Gather Analysis"
+author: "Barrasso Marco"
+date: "2024-02-17"
+output:
+  html_document:
+    df_print: paged
+---
+
+Gather Analysis
+
+Mapped by core
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(dbplyr)
+gather_core_thin = read.csv("~/Downloads/hpc_ex1/thin/gather_core_thin.csv")
+
+gather_core_plot = gather_core_thin %>% 
+  pivot_longer(cols = c(basic_linear, binomial)) %>%
+  ggplot(aes(x = cores, y = value, color = name)) +
+  geom_vline(xintercept = c(12,24), linetype = "dashed", color = "black")+
+  annotate("text", x = c(12,24), y = rep(0,2), label = c(12,24), 
+           vjust = 1, hjust = -0.1,color="black")+
+  geom_point(size = 1.5) +
+  geom_line(aes(group = name), size = 0.6) + 
+  labs(title = "Latency vs # Cores, Mapped by Core, Message Size 1 MPI_CHAR",
+       x = "# Cores",
+       y = "Latency (us)",
+       color = "Allocation") +
+  theme_bw() + 
+  theme(legend.position = c(0.13, 0.82), 
+        legend.background = element_rect(fill = "transparent", colour = NA))
+
+gather_core_plot
+```
+
+
+Mapped by socket
+```{r}
+gather_socket_thin = read.csv("~/Downloads/hpc_ex1/thin/gather_socket_thin.csv")
+
+gather_socket_plot = gather_socket_thin %>% 
+  pivot_longer(cols = c(basic_linear, binomial)) %>%
+  ggplot(aes(x = cores, y = value, color = name)) +
+  geom_vline(xintercept = c(12,24), linetype = "dashed", color = "black")+
+  annotate("text", x = c(12,24), y = rep(0,2), label = c(12,24), 
+           vjust = 1, hjust = -0.1,color="black")+
+  geom_point(size = 1.5) +
+  geom_line(aes(group = name), size = 0.6) + 
+  labs(title = "Latency vs # Cores, Mapped by Socket, Message Size 1 MPI_CHAR",
+       x = "# Cores",
+       y = "Latency (us)",
+       color = "Allocation") +
+  theme_bw() + 
+  theme(legend.position = c(0.13, 0.82), 
+        legend.background = element_rect(fill = "transparent", colour = NA))
+
+gather_socket_plot
+```
+
+
+Mapped by node
+```{r}
+gather_node_thin = read.csv("~/Downloads/hpc_ex1/thin/gather_node_thin.csv")
+
+gather_node_plot = gather_node_thin %>% 
+  pivot_longer(cols = c(basic_linear, binomial)) %>%
+   ggplot(aes(x = cores, y = value, color = name)) +
+  geom_vline(xintercept = c(12,24), linetype = "dashed", color = "black")+
+  annotate("text", x = c(12,24), y = rep(0,2), label = c(12,24), 
+           vjust = 1, hjust = -0.1,color="black")+
+  geom_point(size = 1.5) +
+  geom_line(aes(group = name), size = 0.6) + 
+  labs(title = "Latency vs # Cores, Mapped by Node, Message Size 1 MPI_CHAR",
+       x = "# Cores",
+       y = "Latency (us)",
+       color = "Allocation") +
+  theme_bw() + 
+  ylim(0, 2.1) +
+  theme(legend.position = c(0.12, 0.86), 
+        legend.background = element_rect(fill = "transparent", colour = NA))
+
+gather_node_plot
+
+```
+
+Binomial Comparison
+```{r}
+
+binomial = data.frame(core = gather_core_thin$binomial, socket = gather_socket_thin$binomial,                                 node = gather_node_thin$binomial, cores = gather_core_thin$cores)
+
+binomial_plot = binomial %>% 
+  pivot_longer(cols = c(core, socket, node)) %>%
+  ggplot(aes(x = cores, y = value, color = name)) +
+  geom_vline(xintercept = c(12,24), linetype = "dashed", color = "black")+
+  annotate("text", x = c(12,24), y = rep(0,2), label = c(12,24), 
+           vjust = 1, hjust = -0.1,color="black")+
+  geom_point(size = 1.5) +
+  geom_line(aes(group = name), size = 0.6) + 
+  labs(title = "Binomial Tree Algorithm, Latency vs # Cores",
+       x = "# Cores",
+       y = "Latency (us)",
+       color = "Allocation") +
+  theme_bw() + 
+  ylim(0, 2) +
+  theme(legend.position = c(0.08, 0.84), 
+        legend.background = element_rect(fill = "transparent", colour = NA))
+
+binomial_plot
+
+```
+
+
+Gather Performance Model
+```{r}
+library(plotly)
+binomial_all = read.csv("~/Downloads/hpc_ex1/thin/gather_binomial.csv")
+
+binomial_all = data.frame(
+  log2Latency=as.numeric(unlist(log2(binomial_all %>% filter(Allocation == "node") %>% select(Latency)))),
+  Processes= as.numeric(unlist(binomial_all %>% filter(Allocation == "node") %>% select(Processes))),
+  log2MessageSize=as.numeric(unlist(log2(binomial_all %>% filter(Allocation == "node") %>% select(MessageSize))))
+)
+
+fig <- binomial_all %>%
+  plot_ly(
+    x = ~log2MessageSize,
+    y = ~Processes,
+    z = ~log2Latency,
+    type = 'scatter3d',
+    mode = 'markers',
+    marker = list(
+      size = 8, 
+      color = ~log2Latency,
+      line = list(color = 'black', width = 0.5)
+    )
+  ) %>%
+  layout(
+    scene = list(
+      xaxis = list(
+        title = "log2(MessageSize)",
+        titlefont = list(size = 11)  
+      ),
+      yaxis = list(
+        title = "Cores",
+        titlefont = list(size = 11)  
+      ),
+      zaxis = list(
+        title = "log2(Latency)",
+        titlefont = list(size = 11)  
+      )
+    )
+  )
+fig
+
+binomial_model = lm(log2Latency ~ -1 + log2MessageSize + Processes + I(log2MessageSize^2), data = binomial_all)
+summary(binomial_model)
+
+fig <- binomial_all %>%
+  plot_ly(
+    x = ~log2MessageSize,
+    y = ~Processes,
+    z = ~log2Latency,
+    type = 'scatter3d',
+    mode = 'markers',
+    marker = list(
+      size = 6,  
+      color = 'grey',
+      opacity = 0.3,
+      line = list(color = 'black', width = 0.5)
+    )
+  ) %>%
+  layout(
+    title = "",
+    scene = list(
+      xaxis = list(
+        title = "log2(MessageSize)",
+        titlefont = list(size = 11)  
+      ),
+      yaxis = list(
+        title = "Cores",
+        titlefont = list(size = 11)  
+      ),
+      zaxis = list(
+        title = "log2(Latency)",
+        titlefont = list(size = 11)  
+      )
+    )
+  )
+
+x_values <- seq(min(binomial_all$log2MessageSize), max(binomial_all$log2MessageSize), length.out = 100)
+y_values <- seq(min(binomial_all$Processes), max(binomial_all$Processes), length.out = 100)
+meshgrid <- expand.grid(log2MessageSize = x_values, Processes = y_values)
+
+# Predict the z values using the linear model
+z_values <- predict(binomial_model, newdata = meshgrid)
+
+# Reshape the predicted z values into a matrix
+z_matrix <- matrix(z_values, nrow = length(y_values), ncol = length(x_values), byrow = TRUE)
+
+fig <- fig %>%
+  add_surface(
+    x = ~x_values,
+    y = ~y_values,
+    z = z_matrix, 
+    opacity = 1,  
+    colorscale = 'Plasma',
+    name = 'Regression Plane',
+    showlegend = FALSE,
+    showscale = FALSE
+  )
+
+fig
+```

@@ -1,0 +1,134 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(dbplyr)
+
+#MPI
+mpi_strong = read.csv("~/Downloads/hpc_ex2/mpi/mpi_strong.csv")
+mpi_weak = read.csv("~/Downloads/hpc_ex2/mpi/mpi_weak.csv")
+
+#Time vs Processes
+mpi_strong_scaling = mpi_strong %>%
+  filter(Processes %in% c(1, 2, 4, 8, 16, 32, 64, 96)) %>%
+  ggplot(aes(x = Processes, y = Time)) + 
+  geom_vline(xintercept = c(2, 4, 8, 16, 32, 64, 96), linetype = "dashed", color = "grey")+
+  annotate("text", x = c(2, 4, 8, 16, 32, 64, 96), y = rep(0,7), label = c(2, 4, 8, 16, 32, 64, 96), 
+           vjust = 1, hjust = -0.1,color="grey50")+
+  geom_line(size = 0.6, color = "orange") +
+  geom_point(size=2.5,col="black")+
+  geom_point(size=1.5, col="orange")+
+  theme_bw() +
+  labs(title = "MPI Strong Scaling: Time vs MPI Processes (Size = 2000 x 2000)",
+       x = "# Processes",
+       y = "Avarage Time(s)")
+
+mpi_strong_scaling
+
+mpi_strong$SpeedUp = mpi_strong$Time[1] / mpi_strong$Time
+
+#Speedup vs Processes
+mpi_speedup = mpi_strong %>%
+  filter(Processes %% 4 == 0) %>%
+  ggplot(aes(x = Processes, y = SpeedUp))  +
+  geom_vline(xintercept = c(24, 48, 72, 96), linetype = "dashed", color = "grey")+
+  annotate("text", x = c(24, 48, 72, 96), y = rep(0,4), label = c(24, 48, 72, 96), 
+           vjust = 0, hjust = -0.1,color="grey50")+
+  geom_line(size = 0.6, color = "#6495ED") +  
+  geom_point(size=1.3,col="black")+
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red", size = 0.6) +
+  theme_bw() + 
+  labs(title = "MPI Strong Scaling: Speedup (Size = 2000 x 2000)",
+       x = "# Processes",
+       y = "Speedup")
+
+mpi_speedup
+
+
+mpi_weak$Efficiency = (mpi_weak$Time[1] / mpi_weak$Time) 
+
+#Efficiency vs Processes
+mpi_efficiency = mpi_weak %>%
+  filter(Processes %% 3 == 0) %>%
+  ggplot(aes(x = Processes, y = Efficiency)) + 
+  geom_vline(xintercept = c(24, 48, 72, 96), linetype = "dashed", color = "grey")+
+  annotate("text", x = c(24, 48, 72, 96), y = rep(0,4), label = c(24, 48, 72, 96), 
+           vjust = 0, hjust = -0.1,color="grey50")+
+  geom_line(size = 0.8, color = "#B0C4DE") + 
+  geom_point(size=1.2,col="black")+
+  geom_hline(yintercept = 1,  linetype = "dashed", color = "red", size = 0.6) +
+  theme_bw() +  
+  ylim(0, 1) + 
+  labs(title = "MPI Weak Scaling: Efficiency",
+       x = "# Processes",
+       y = "Efficiency")
+
+mpi_efficiency
+
+```
+
+
+
+```{r}
+#OpenMP
+mp_strong2 = read.csv("~/Downloads/hpc_ex2/openmp/mp_strong2.csv")
+mp_weak2 = read.csv("~/Downloads/hpc_ex2/openmp/weak2.csv")
+
+#Time vs Threads
+mp_strong_scaling = mp_strong2 %>%
+  filter(Threads %in% c(1, 2, 4, 8, 16, 24)) %>%
+  ggplot(aes(x = Threads, y = Time)) + 
+  geom_vline(xintercept = c(1, 2, 4, 8, 16, 24), linetype = "dashed", color = "grey")+
+  annotate("text", x = c(1, 2, 4, 8, 16, 24), y = rep(0,6), label = c(1, 2, 4, 8, 16, 24), 
+           vjust = 1, hjust = -0.1,color="grey50")+
+  geom_line(size = 0.6, color = "#DDA0DD") +  # Draw line first
+  geom_point(size=2.5,col="black")+
+  geom_point(size=1.5, col="#DDA0DD")+
+  theme_bw() + 
+  labs(title = "OMP Strong Scaling: Time vs OMP Threads(Size = 2000 x 2000)",
+       x = "# Threads",
+       y = "Avarage Time(s)")
+
+mp_strong_scaling
+
+mp_strong2$SpeedUp = mp_strong2$Time[1] / mp_strong2$Time
+
+#Speedup vs Threads
+mp_speedup = mp_strong2 %>%
+  ggplot(aes(x = Threads, y = SpeedUp))  +
+  geom_line(size = 0.6, color = "#6495ED") + 
+  geom_point(size=1,col="black")+
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red", size = 0.6) +
+  theme_bw() + 
+  labs(title = "OMP Strong Scaling: Time vs Speedup(Size = 2000 x 2000)",
+       x = "# Threads",
+       y = "Speedup")
+
+mp_speedup
+
+
+mp_weak2$Efficiency = (mp_weak2$Time[1] / mp_weak2$Time) 
+
+#Efficiency vs Threads
+mp_efficiency = mp_weak2 %>%
+  filter(Threads %% 2 == 0) %>%
+  ggplot(aes(x = Threads, y = Efficiency)) + 
+  geom_line(size = 0.8, color = "#FFD700") + 
+  geom_point(size=1.2,col="black")+
+  geom_hline(yintercept = 1,  linetype = "dashed", color = "red", size = 0.6) +
+  theme_bw() +  
+  ylim(0, 1) + 
+  labs(title = "OMP Weak Scaling: Efficiency",
+       x = "# Threads",
+       y = "Efficiency")
+
+mp_efficiency
+```
+

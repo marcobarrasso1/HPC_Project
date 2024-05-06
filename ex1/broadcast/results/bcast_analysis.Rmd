@@ -1,0 +1,352 @@
+---
+title: "Broadcast Analysis"
+author: "Barrasso Marco"
+date: "2024-02-17"
+output: html_document
+---
+
+Broadcast Analysis
+
+Mapped by core
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(dbplyr)
+
+bcast_core_thin = read.csv("Downloads/hpc_ex1/thin/bcast_core_thin.csv")
+
+bcast_core_plot = 
+  bcast_core_thin %>% 
+  filter(cores %% 2 == 0) %>%
+  pivot_longer(cols = c(basic_linear, chain, binary_tree)) %>%
+  ggplot(aes(x = cores, y = value, color = name)) +
+  geom_vline(xintercept = c(12,24), linetype = "dashed", color = "black")+
+  annotate("text", x = c(12,24), y = rep(0,2), label = c(12,24), 
+           vjust = 1, hjust = -0.1,color="black")+
+  geom_line(size = 0.6) +  # Draw line first
+  geom_point(size=1.5) +
+  labs(title = "Latency vs # Cores, Mapped by Core, Message Size 1 MPI_CHAR",
+       x = "# Cores",
+       y = "Latency (us)",
+       color = "Algorithm") +
+  theme_bw() + 
+  theme(legend.position = c(0.1, 0.82), 
+        legend.background = element_rect(fill = "transparent", colour = NA))
+
+
+```
+
+
+Mapped by socket
+```{r}
+
+bcast_socket_thin = read.csv("Downloads/hpc_ex1/thin/bcast_socket_thin.csv")
+
+bcast_socket_plot = bcast_socket_thin %>% 
+  filter(cores %% 2 == 0) %>%
+  pivot_longer(cols = c(basic_linear, chain, binary_tree)) %>%
+  ggplot(aes(x = cores, y = value, color = name)) +
+  geom_vline(xintercept = c(12,24), linetype = "dashed", color = "black")+
+  annotate("text", x = c(12,24), y = rep(0,2), label = c(12,24), 
+           vjust = 1, hjust = -0.1,color="black")+
+  geom_line(size = 0.6) +  # Draw line first
+  geom_point(size=1.5) +
+  labs(title = "Latency vs # Cores, Mapped by Socket, Message Size 1 MPI_CHAR",
+       x = "# Cores",
+       y = "Latency (us)",
+       color = "Algorithm") +
+  theme_bw() + 
+  theme(legend.position = c(0.1, 0.82), 
+        legend.background = element_rect(fill = "transparent", colour = NA))
+
+```
+
+
+Mapped by node
+```{r}
+
+bcast_node_thin = read.csv("Downloads/hpc_ex1/thin/bcast_node_thin.csv")
+
+bcast_node2 = bcast_node_thin %>% 
+  filter(cores %% 2 == 0) %>%
+  pivot_longer(cols = c(basic_linear, chain, binary_tree)) %>%
+  ggplot(aes(x = cores, y = value, color = name)) +
+  geom_vline(xintercept = c(12,24), linetype = "dashed", color = "black")+
+  annotate("text", x = c(12,24), y = rep(0,2), label = c(12,24), 
+           vjust = 1, hjust = -0.1,color="black")+
+  geom_line(size = 0.6) +  # Draw line first
+  geom_point(size=1.5) +
+  labs(title = "Latency vs # Cores, Mapped by Node, Message Size 1 MPI_CHAR",
+       x = "# Cores",
+       y = "Latency (us)",
+       color = "Algorithm") +
+  theme_bw() + 
+  theme(legend.position = c(0.1, 0.82), 
+        legend.background = element_rect(fill = "transparent", colour = NA))
+```
+
+
+Algorithms comparison
+```{r}
+linear = data.frame(core = bcast_core_thin$basic_linear, socket = bcast_socket_thin$basic_linear,                                 node = bcast_node_thin$basic_linear, cores = bcast_core_thin$cores)
+
+chain = data.frame(core = bcast_core_thin$chain, socket = bcast_socket_thin$chain,                                 node = bcast_node_thin$chain, cores = bcast_core_thin$cores)
+
+binary = data.frame(core = bcast_core_thin$binary_tree, socket = bcast_socket_thin$binary_tree,                                 node = bcast_node_thin$binary_tree, cores = bcast_core_thin$cores)
+  
+linear_plot = 
+linear %>% 
+  filter(cores %% 2 == 0) %>%
+  pivot_longer(cols = c(core, socket, node)) %>%
+  ggplot(aes(x = cores, y = value, color = name)) +
+  geom_vline(xintercept = c(12,24), linetype = "dashed", color = "black")+
+  annotate("text", x = c(12,24), y = rep(0,2), label = c(12,24), 
+           vjust = 1, hjust = -0.1,color="black")+
+  geom_point(size = 1.5) +
+  geom_line(aes(group = name), size = 0.6) + 
+  labs(title = "Linear Algorithm, Latency vs # Cores",
+       x = "# Cores",
+       y = "Latency (us)",
+       color = "Allocation") +
+  theme_bw() + 
+  theme(legend.position = c(0.1, 0.82), 
+        legend.background = element_rect(fill = "transparent", colour = NA))
+
+
+chain_plot = 
+chain %>% 
+  filter(cores %% 2 == 0) %>%
+  pivot_longer(cols = c(core, socket, node)) %>%
+  ggplot(aes(x = cores, y = value, color = name)) +
+  geom_vline(xintercept = c(12,24), linetype = "dashed", color = "black")+
+  annotate("text", x = c(12,24), y = rep(0,2), label = c(12,24), 
+           vjust = 1, hjust = -0.1,color="black")+
+  geom_point(size = 1.5) +
+  geom_line(aes(group = name), size = 0.6) + 
+  labs(title = "Chain Tree Algorithm, Latency vs # Cores",
+       x = "# Cores",
+       y = "Latency (us)",
+       color = "Allocation") +
+  theme_bw() + 
+  theme(legend.position = c(0.1, 0.82), 
+        legend.background = element_rect(fill = "transparent", colour = NA))
+
+
+binary_plot =
+binary %>% 
+  filter(cores %% 2 == 0) %>%
+  pivot_longer(cols = c(core, socket, node)) %>%
+  ggplot(aes(x = cores, y = value, color = name)) +
+  geom_vline(xintercept = c(12,24), linetype = "dashed", color = "black")+
+  annotate("text", x = c(12,24), y = rep(0,2), label = c(12,24), 
+           vjust = 1, hjust = -0.1,color="black")+
+  geom_point(size = 1.5) +
+  geom_line(aes(group = name), size = 0.6) + 
+  labs(title = "Binary Tree Algorithm, Latency vs # Cores",
+       x = "# Cores",
+       y = "Latency (us)",
+       color = "Allocation") +
+  theme_bw() + 
+  theme(legend.position = c(0.1, 0.82), 
+        legend.background = element_rect(fill = "transparent", colour = NA))
+
+
+```
+
+Broadcast Performance Model
+
+Linear Algorithm
+```{r}
+library(plotly)
+linear <- read.csv("Downloads/hpc_ex1/thin/bcast_linear.csv")
+
+
+linear <- data.frame(
+  log2Latency=as.numeric(unlist(log2(linear %>% filter(Allocation == "core") %>% select(Latency)))),
+  Processes= as.numeric(unlist(linear %>% filter(Allocation == "core") %>% select(Processes))),
+  log2MessageSize=as.numeric(unlist(log2(linear %>% filter(Allocation == "core") %>% select(MessageSize))))
+)
+
+
+
+fig <- plot_ly(linear, x = ~Processes, y = ~log2MessageSize, z = ~log2Latency,
+               marker = list(size = 8, color = ~log2Latency, colorscale = 'Viridis',
+                             line = list(color = 'black', width = 2)))
+fig <- fig %>% add_markers()
+
+fig <- fig %>% layout(scene = list(xaxis = list(title = 'Number of Cores'),
+                                   yaxis = list(title = 'log2(MessageSize)'),
+                                   zaxis = list(title = 'log2(Latency)')),
+                      title = '3D Plot of Latency by Number of Cores and Message Size')
+fig
+
+fig <- linear %>%
+  plot_ly(
+    x = ~log2MessageSize,
+    y = ~Processes,
+    z = ~log2Latency,
+    type = 'scatter3d', # Specify plot type
+    mode = 'markers',   # Use markers
+    marker = list(
+      size = 6,  
+      color = 'grey',
+      opacity = 0.3,
+      line = list(color = 'black', width = 0.5)
+    )
+  ) %>%
+  layout(
+    title = "",
+    scene = list(
+      xaxis = list(
+        title = "log2(MessageSize)",
+        titlefont = list(size = 11)  
+      ),
+      yaxis = list(
+        title = "Cores",
+        titlefont = list(size = 11)  
+      ),
+      zaxis = list(
+        title = "log2(Latency)",
+        titlefont = list(size = 11)  
+      )
+    )
+  )
+
+fig
+# Create a meshgrid for x and y values
+x_values <- seq(min(linear$log2MessageSize), max(linear$log2MessageSize), length.out = 100)
+y_values <- seq(min(linear$Processes), max(linear$Processes), length.out = 100)
+meshgrid <- expand.grid(log2MessageSize = x_values, Processes = y_values)
+
+model<- lm(log2Latency~-1 + Processes + log2MessageSize + I(log2MessageSize^2), linear)
+summary(model)
+# Predict the z values using the linear model
+z_values <- predict(model, newdata = meshgrid)
+
+# Reshape the predicted z values into a matrix
+z_matrix <- matrix(z_values, nrow = length(y_values), ncol = length(x_values), byrow = TRUE)
+
+# Add the regression plane to the scatter plot with lower opacity
+fig <- fig %>%
+  add_surface(
+    x = ~x_values,
+    y = ~y_values,
+    z = z_matrix, # This hides the color scale legend
+    opacity = 1,  # Adjust opacity for the regression plane
+    name = 'Regression Plane',
+    showlegend = FALSE,
+    showscale = FALSE
+  )
+
+fig
+```
+
+
+Chain Algorithm
+```{r}
+chain <- read.csv("Downloads/hpc_ex1/thin/bcast_chain.csv")
+
+chain<- data.frame(
+  log2Latency=as.numeric(unlist(log2(chain %>% filter(Allocation == "core") %>% select(Latency)))),
+  Processes= as.numeric(unlist(chain %>% filter(Allocation == "core") %>% select(Processes))),
+  log2MessageSize=as.numeric(unlist(log2(chain %>% filter(Allocation == "core") %>% select(MessageSize))))
+)
+
+
+fig <- chain %>%
+  plot_ly(
+    x = ~log2MessageSize,
+    y = ~Processes,
+    z = ~log2Latency,
+    type = 'scatter3d', 
+    mode = 'markers',
+    marker = list(
+      size = 6,  
+      colorscale = 'Viridis',
+      color = ~log2Latency,
+      line = list(color = 'black', width = 0.5)
+    )
+  ) %>%
+  layout(
+    title = "",
+    scene = list(
+      xaxis = list(
+        title = "log2(MessageSize)",
+        titlefont = list(size = 11)  
+      ),
+      yaxis = list(
+        title = "Cores",
+        titlefont = list(size = 11)  
+      ),
+      zaxis = list(
+        title = "log2(Latency)",
+        titlefont = list(size = 11)  
+      )
+    )
+  )
+
+fig
+
+model_chain<- lm(log2Latency~-1 + Processes + log2MessageSize + I(log2MessageSize^2), data = chain)
+summary(model_chain)
+
+```
+
+
+Binary Tree Algorithm
+```{r}
+binary <- read.csv("Downloads/hpc_ex1/thin/bcast_binary.csv")
+
+binary <- data.frame(
+  log2Latency=as.numeric(unlist(log2(binary %>% filter(Allocation == "core") %>% select(Latency)))),
+  Processes= as.numeric(unlist(binary %>% filter(Allocation == "core") %>% select(Processes))),
+  log2MessageSize=as.numeric(unlist(log2(binary %>% filter(Allocation == "core") %>% select(MessageSize))))
+)
+
+
+fig <- binary %>%
+  plot_ly(
+    x = ~log2MessageSize,
+    y = ~Processes,
+    z = ~log2Latency,
+    type = 'scatter3d', 
+    mode = 'markers',
+    marker = list(
+      size = 6,  
+      colorscale = 'Viridis',
+      color = ~log2Latency,
+      line = list(color = 'black', width = 0.5)
+    )
+  ) %>%
+  layout(
+    title = "",
+    scene = list(
+      xaxis = list(
+        title = "log2(MessageSize)",
+        titlefont = list(size = 11)  
+      ),
+      yaxis = list(
+        title = "Cores",
+        titlefont = list(size = 11)  
+      ),
+      zaxis = list(
+        title = "log2(Latency)",
+        titlefont = list(size = 11)  
+      )
+    )
+  )
+
+fig
+
+model_binary<- lm(log2Latency~-1 + Processes + log2MessageSize + I(log2MessageSize^2), data = binary)
+summary(model_binary)
+
+```
+
+
+
+
+
+
