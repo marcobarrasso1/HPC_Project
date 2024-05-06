@@ -1,6 +1,6 @@
 # HPC_Project
 
-Final project of the course High Performance Computing
+Final project of the course *High Performance Computing*
 
 # Exercises
 
