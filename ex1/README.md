@@ -4,7 +4,8 @@ Text of the exercise [exercise1.md](exercise1.md)
 
 
 ## Project Structure
-'''
+
+
 .
 ├── README.md
 ├── broadcast
@@ -32,5 +33,4 @@ Text of the exercise [exercise1.md](exercise1.md)
 │       └── gather_socket.csv
 └── report
     └── BARRASSO_ex1_report.pdf
-'''
 
