@@ -1,6 +1,6 @@
 # HPC_Project
 
-Final project of the course *High Performance Computing*, Universiti of Trieste, Master Program: DSAI.
+Final project of the course *High Performance Computing*, University of Trieste, Master Program: DSAI.
 
 # Exercises
 
