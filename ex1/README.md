@@ -4,7 +4,7 @@ Text of the exercise [exercise1.md](exercise1.md)
 
 
 ## Project Structure
-
+.
 ├── README.md
 ├── broadcast
 │   ├── broadcast_get_data
